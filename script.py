@@ -2,37 +2,46 @@
 # of a file to an audio file.
 
 import youtube_dl
-import os.path
-import subprocess
-import ssl
-import urllib.request
 
 # The URL that the user gives. Will open and download the
 # video from the URL, using urlopen.
-link = input("Enter the URL of the video you wish to convert: ")
-times_exist = False
-if_timestamps = input("Are there any timestamps in which you would like to separate the video? Enter 'yes' or 'no'. ")
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
-# if (if_timestamps == "yes"):
-#     times_exist = True
-#     times = list(input("Enter timestamps in the following fashion, '18:11 21:22 24:54'.").split()
-
-def download_vid(URL):
-    vid_file = 'temp_file.mp4'
-    video = urllib.request.urlopen(URL, context=ctx)
-    with open(vid_file, 'wb') as f:
-        f.write(video.read())
-    return vid_file
-
-def convert_to_audio(video):
-    root, ext = os.path.splitext(video)
-    os.rename(video, root + '.wav')
+link = input("Enter the URL of the youtube video you wish to convert: ")
+pl = input("Is the video playlist? Enter 'yes' or 'no'.")
+if_playlist = check_pl(pl)
+if (if_playist):
+    all_vids = True
+    range_exists = input("Would you like to download only specific videos of the playlist? Enter 'yes' or 'no'.")
+    if (range_exists):
+        all_vids = False
+        vid_range = list(map(int, input("Enter the videos you would like to download: Ex. '1 3 7 8'").split())
+else:
+    ts = input("Are there any timestamps in which you would like to separate the video? Enter 'yes' or 'no'. ")
+    if_timestamps = check_ts(ts)
+    if (if_timestamps):
+        timestamps = get_timestamps()
 
 
-vid = download_vid(link)
-#convert_to_audio(vid)
 
+# This function sets up the boolean value for whether or not 
+# the URL given is a playlist.
+def check_pl(pl):
+    if pl == "yes":
+        return True
+    else:
+        return False
+
+# This function sets up the boolean value for whether or not 
+# the user wants to use timestamps tp separate audio.
+def check_ts(ts):
+    if ts == "yes":
+        return True
+    else:
+        return False
+
+# This function will take care of asking the user for the 
+# actual timestamps.
+def get_timestamps():
+    return list(input("""Enter the timestamps which you would like 
+                            to separate the audio in the following fashion:
+                                '18:11 21:32 42:57'.""").split())
 
