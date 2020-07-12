@@ -83,4 +83,3 @@ else:
     if_timestamps = check_ts(ts)
     if (if_timestamps):
         timestamps = get_timestamps()
-
