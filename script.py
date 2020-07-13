@@ -10,7 +10,17 @@ import ffmpeg
 # playlist or a video with timestamps.
 
 def download_vid(lnk):
-    return 0
+    options = {
+        'format': 'best',
+        'outtmpl': '/Users/aramkazorian/Desktop/%(title)s'+'.mp4',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(options) as ydl:
+        ydl.download([lnk])
 
 
 # This function sets up the boolean value for whether or not
@@ -21,6 +31,18 @@ def check_playlist(pllst):
         return True
     else:
         return False
+
+
+# This function will take care of using a while loop to keep asking the user
+# for a valid answer to the question asked, if the answer is invalid.
+# This function will only take care of invalid answers for 'yes' or 'no'
+# questions.
+
+def check_invalids(inpt, prompt):
+    while not inpt:
+        answer = input(prompt)
+        inpt = check_input(inpt)
+    return answer
 
 
 # This function sets up the boolean value for whether or not
@@ -44,13 +66,14 @@ def get_timestamps():
 
 # This function checks if 'yes' or 'no' inputs are valid.
 # Essentially, checks for spelling errors and other invalid answers.
+# If input is 'quit', the program is exited immediately.
 
 def check_input(inpt):
+    if inpt == "quit":
+        sys.exit()
     if inpt != "yes":
         if inpt != "no":
             return False
-    if inpt == "quit":
-        sys.exit()
     return True
 
 
@@ -63,41 +86,45 @@ print("Welcome to the file converter! Here, you can convert YouTube videos to "
       "wav files for audio and include "
       "timestamps as well. Please, type 'quit' at anytime if you wish to exit.")
 link = input("Enter the URL of the youtube video you wish to convert: ")
-pl = input("Is the video a playlist? Enter 'yes' or 'no'.")
+check_input(link)
+pl = input("Is the video a playlist? Enter 'yes' or 'no'. ")
 
 good_input = check_input(pl)
+
 while not good_input:
-    pl = input("Invalid answer.Is the video a playlist? Please enter 'yes' or "
-               "'no'.")
+    pl = input("Invalid answer. Is the video a playlist? Enter 'yes' or 'no'. ")
     good_input = check_input(pl)
 
 if_playlist = check_playlist(pl)
 if if_playlist:
     all_vids = True
     range_exists = input("""Would you like to download only specific videos 
-    of the playlist? Enter 'yes' or 'no'.""")
+    of the playlist? Enter 'yes' or 'no'. """)
 
     range_input = check_input(range_exists)
     while not range_input:
         range_exists = input("""Invalid answer. Would you like to download 
-        only specific videos of the playlist? Enter 'yes' or 'no'.""")
-        range_input = check_input(pl)
+        only specific videos of the playlist? Enter 'yes' or 'no'. """)
+        range_input = check_input(range_exists)
 
     if range_exists:
         all_vids = False
 
         # Add an input check for ints
         vid_range = list(map(int, input("Enter the videos you would like to "
-                                        "download: Ex. '1 3 7 8'").split()))
+                                        "download: Ex. '1 3 7 8' ").split()))
 else:
     ts = input("""Are there any timestamps in which you would like to 
-    separate the video? Enter 'yes' or 'no'.""")
+    separate the video? Enter 'yes' or 'no'. """)
 
     ts_input = check_input(ts)
     while not ts_input:
         ts = input("""Invalid answer. Are there any timestamps in which you 
-        would like to separate the video? Enter 'yes' or 'no'.""")
+        would like to separate the video? Enter 'yes' or 'no'. """)
         ts_input = check_input(ts)
     if_timestamps = check_ts(ts)
     if if_timestamps:
         timestamps = get_timestamps()
+    else:
+        download_vid(link)
+        sys.exit()
