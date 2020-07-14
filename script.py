@@ -1,26 +1,86 @@
 # This is a python script that allows for the conversion
-# of a file to an audio file.
-
+# of a file to an audio file. I read and used the documentation
+# of youtube-dl to help download videos using the processing options
+# given by the user.
+import re
 import sys
 import youtube_dl
-import ffmpeg
 
 
 # This function downloads a single YouTube video, not a
 # playlist or a video with timestamps.
 
-def download_vid(lnk):
-    options = {
+def download_single_vid(lnk):
+    ydl_opts = {
         'format': 'best',
-        'outtmpl': '/Users/aramkazorian/Desktop/%(title)s'+'.mp4',
+        'outtmpl': '/Users/aramkazorian/Desktop/%(title)s' + '.mp4',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
     }
-    with youtube_dl.YoutubeDL(options) as ydl:
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([lnk])
+
+
+# This function will take care of downloading an entire playlist, without
+# any ranges.
+
+def download_playlist(lnk):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '/Users/aramkazorian/Desktop/%(title)s' + '.mp4',
+        'noplaylist': False,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([lnk])
+
+
+# This function will download a playlist with ranges given by the user.
+# I.e. if given the range [1, 3, 5, 7], this function will only download
+# the 1st, 3rd, 5th, and 7th video of the playlist.
+
+def download_with_range(lnk, range_str):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '/Users/aramkazorian/Desktop/%(title)s' + '.mp4',
+        'playlist_items': range_str,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([lnk])
+
+
+# Check if the URL is a valid YouTube URL.
+
+def valid_url(URL):
+    pattern = "(https:\\/\\/)?(www\\.)?youtube\\.com\\/watch\\?v=[" \
+              "a-zA-Z0-9_]{11}(\\S+)?$"
+    return re.match(pattern, URL)
+
+
+# This function will ask for the URL again, if invalid. This is for individual
+# videos.
+
+def reenter_url():
+    url = input(
+        "Invalid URL. Please make sure the URL given is a valid YouTube URL.")
+    check_input(url)
+    while not valid_url(url):
+        url = input(
+            "Invalid URL. Please make sure the URL given is a valid YouTube URL.")
+        check_input(url)
+    return url
 
 
 # This function sets up the boolean value for whether or not
@@ -87,6 +147,7 @@ print("Welcome to the file converter! Here, you can convert YouTube videos to "
       "timestamps as well. Please, type 'quit' at anytime if you wish to exit.")
 link = input("Enter the URL of the youtube video you wish to convert: ")
 check_input(link)
+
 pl = input("Is the video a playlist? Enter 'yes' or 'no'. ")
 
 good_input = check_input(pl)
@@ -96,6 +157,7 @@ while not good_input:
     good_input = check_input(pl)
 
 if_playlist = check_playlist(pl)
+
 if if_playlist:
     all_vids = True
     range_exists = input("""Would you like to download only specific videos 
@@ -107,13 +169,21 @@ if if_playlist:
         only specific videos of the playlist? Enter 'yes' or 'no'. """)
         range_input = check_input(range_exists)
 
-    if range_exists:
+    if range_exists == 'yes':
         all_vids = False
 
         # Add an input check for ints
-        vid_range = list(map(int, input("Enter the videos you would like to "
-                                        "download: Ex. '1 3 7 8' ").split()))
+        vid_range = input("Enter the videos you would like to "
+                                        "download, or enter '0' if you want "
+                                        "all: Ex. '1 3 7-9'. ")
+        download_with_range(link, vid_range)
+
+    else:
+        download_playlist(link)
 else:
+    matches = valid_url(link)
+    if not matches:
+        link = reenter_url()
     ts = input("""Are there any timestamps in which you would like to 
     separate the video? Enter 'yes' or 'no'. """)
 
@@ -126,5 +196,5 @@ else:
     if if_timestamps:
         timestamps = get_timestamps()
     else:
-        download_vid(link)
+        download_single_vid(link)
         sys.exit()
