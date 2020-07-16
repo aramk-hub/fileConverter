@@ -1,4 +1,5 @@
 import sys
+import os
 import youtube_dl
 import re
 
@@ -57,10 +58,40 @@ def download_with_range(lnk, range_str):
         ydl.download([lnk])
 
 
+# This function takes in a link and a list of timestamps, formatted as strings.
+# The function will download the video in separate audio files specified by the
+# by the user. The way to accomplish this is by using the ffmpeg module to
+# our advantage and pass in the arguments as if it was a ffmpeg command, through
+# the system.
+
+def download_with_timestamps(lnk, time_lst):
+    timestamps = calc_timestamps(time_lst)
+
+
+# This function will calculate the amount of seconds, so that ffmpeg
+# can be used with the timestamps.
+def calc_timestamps(times):
+    result = []
+    i = 0
+    for time in times:
+        hours = int(time[:2]) * 3600
+        minutes = int(time[3:5]) * 60
+        seconds = int(time[6:])
+        result[i] = hours + minutes + seconds
+        i += 1
+    return result
+
+
+# This function checks the format of the timestamps.
+def check_timestamps(lst):
+    pattern = ""
+
+
 # Check if the URL is a valid YouTube URL.
 
 def valid_url(URL):
-    pattern = "(https:\\/\\/)?(www\\.)?youtube\\.com\\/watch\\?v=[a-zA-Z0-9_\\-]{11}(([#\\&\\?]?)(?:t=|start=)(\\d+)s)?"
+    pattern = "(https:\\/\\/)?(www\\.)?youtube\\.com\\/watch\\?v=[" \
+              "a-zA-Z0-9_\\-]{11}(([#\\&\\?]?)(?:t=|start=)(\\d+)s)? "
     return bool(re.match(pattern, URL))
 
 
@@ -114,9 +145,10 @@ def check_ts(timestamp):
 # actual timestamps.
 
 def get_timestamps():
-    return list(input("""Enter the timestamps which you would like 
-                            to separate the audio in the following fashion:
-                                '18:11 21:32 42:57'.""").split())
+    return list(input("Enter the timestamps which you would like to separate "
+                      "the audio in the following fashion: "
+                      "'00:18:11 01:21:32 01:42:57'. "
+                      "This is in HH:mm:ss format.").split())
 
 
 # This function checks if 'yes' or 'no' inputs are valid.

@@ -64,6 +64,7 @@ else:
     if_timestamps = functions.check_ts(ts)
     if if_timestamps:
         timestamps = functions.get_timestamps()
+        functions.download_with_timestamps(link, timestamps)
     else:
         functions.download_single_vid(link)
         sys.exit()
