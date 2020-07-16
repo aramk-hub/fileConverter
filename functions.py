@@ -65,34 +65,78 @@ def download_with_range(lnk, range_str):
 # the system.
 
 def download_with_timestamps(lnk, time_lst):
-    timestamps = calc_timestamps(time_lst)
+    os.system("ffmpeg -ss 0 -i $(youtube-dl -f 140 -g " + lnk + ") -acodec "
+                                                                "copy -vcodec"
+                                                                " copy -to "
+              + str(time_lst[0]))
+    for i in range(len(time_lst) - 1):
+        os.system("ffmpeg -ss " + str(time_lst[i]) + "-i $(youtube-dl -f 140 "
+                                                     "-g " + lnk + ") "
+                                                                   "-acodec "
+                                                                   "copy "
+                                                                   "-vcodec "
+                                                                   "copy -to "
+                                                                   "" + str(
+            time_lst[i + 1]))
+    os.system("ffmpeg -ss " + str(time_lst[len(
+        time_lst - 1)]) + " -i $(youtube-dl -f 140 -g " + lnk + ") -acodec "
+                                                                "copy -vcodec"
+                                                                " copy")
 
 
 # This function will calculate the amount of seconds, so that ffmpeg
 # can be used with the timestamps.
 def calc_timestamps(times):
     result = []
-    i = 0
     for time in times:
         hours = int(time[:2]) * 3600
         minutes = int(time[3:5]) * 60
         seconds = int(time[6:])
-        result[i] = hours + minutes + seconds
-        i += 1
+        result.append(hours + minutes + seconds)
     return result
 
 
 # This function checks the format of the timestamps.
+# Also checks the validity of the order they were placed.
+# For example, timestamps cannot be entered as '00:18:11 00:09:11' as
+# we cannot decide whether or not you want it vice versa or if there was
+# a mistake in what you inputted.
+
 def check_timestamps(lst):
-    pattern = ""
+    pattern = "[0-1][0-9]:[0-5][0-9]:[0-5][0-9]"
+    valid = True
+    for ele in lst:
+        if not bool(re.match(pattern, ele)):
+            valid = False
+    calc = calc_timestamps(lst)
+    if valid:
+        valid = all(calc[i] < calc[i + 1] for i in range(len(calc) - 1))
+    return valid, calc
+
+
+# This function will ask for valid timestamps until they are given.
+
+def need_valid_times():
+    times = list(
+        input("Invalid timestamp format. Please enter again, following "
+              "the above format. ").split())
+    check_input(times)
+    valid_times, calc_times = check_timestamps(times)
+    while not valid_times:
+        times = list(
+            input("Invalid timestamp format. Please enter again, following "
+                  "the above format. ").split())
+        check_input(times)
+        valid_times, calc_times = check_timestamps(times)
+    return calc_times
 
 
 # Check if the URL is a valid YouTube URL.
 
-def valid_url(URL):
+def valid_url(url):
     pattern = "(https:\\/\\/)?(www\\.)?youtube\\.com\\/watch\\?v=[" \
-              "a-zA-Z0-9_\\-]{11}(([#\\&\\?]?)(?:t=|start=)(\\d+)s)? "
-    return bool(re.match(pattern, URL))
+              "a-zA-Z0-9_\\-]{11}(([#\\&\\?]?)(?:t=|start=)(\\d+)s)?"
+    return bool(re.match(pattern, url))
 
 
 # This function will ask for the URL again, if invalid. This is for individual
@@ -100,11 +144,11 @@ def valid_url(URL):
 
 def reenter_url():
     url = input(
-        "Invalid URL. Please make sure the URL given is a valid YouTube URL.")
+        "Invalid URL. Please make sure the URL given is a valid YouTube URL. ")
     check_input(url)
     while not valid_url(url):
         url = input(
-            "Invalid URL. Please make sure the URL given is a valid YouTube URL.")
+            "Invalid URL. Please make sure the URL given is a valid YouTube URL. ")
         check_input(url)
     return url
 
@@ -145,10 +189,16 @@ def check_ts(timestamp):
 # actual timestamps.
 
 def get_timestamps():
-    return list(input("Enter the timestamps which you would like to separate "
-                      "the audio in the following fashion: "
-                      "'00:18:11 01:21:32 01:42:57'. "
-                      "This is in HH:mm:ss format.").split())
+    lst = list(input("Enter the timestamps which you would like to separate "
+                     "the audio in the following fashion: "
+                     "'00:18:11 01:21:32 01:42:57'. "
+                     "This is in HH:mm:ss format and must be in increasing "
+                     "order. ").split())
+    valid, calculated = check_timestamps(lst)
+    if not valid:
+        return need_valid_times()
+    else:
+        return calculated
 
 
 # This function checks if 'yes' or 'no' inputs are valid.
