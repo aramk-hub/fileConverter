@@ -77,7 +77,9 @@ def download_with_timestamps(lnk, time_lst):
                   " -c copy /Users/aramkazorian/Desktop/out" + str(i+1) + ".m4a")
     os.system("ffmpeg -ss " + str(time_lst[len(time_lst) - 1])
               +
-              " -i $(youtube-dl -f 140 -g " + lnk + ") -c copy /Users/aramkazorian/Desktop/out"
+              " -i $(youtube-dl -f 140 -g " + lnk
+              +
+              ") -c copy /Users/aramkazorian/Desktop/out"
               +
               str(i+2) + ".m4a")
 
@@ -146,7 +148,8 @@ def reenter_url():
     check_input(url)
     while not valid_url(url):
         url = input(
-            "Invalid URL. Please make sure the URL given is a valid YouTube URL. ")
+            "Invalid URL. Please make sure the URL given is a valid YouTube "
+            "URL. ")
         check_input(url)
     return url
 
