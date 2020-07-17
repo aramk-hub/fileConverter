@@ -65,23 +65,21 @@ def download_with_range(lnk, range_str):
 # the system.
 
 def download_with_timestamps(lnk, time_lst):
-    os.system("ffmpeg -ss 0 -i $(youtube-dl -f 140 -g " + lnk + ") -acodec "
-                                                                "copy -vcodec"
-                                                                " copy -to "
-              + str(time_lst[0]))
+    os.system("ffmpeg -ss 0 -i $(youtube-dl -f 140 -g " + lnk + ") -t " +
+              str(time_lst[0]) + " -c copy /Users/aramkazorian/Desktop/out.m4a")
     for i in range(len(time_lst) - 1):
-        os.system("ffmpeg -ss " + str(time_lst[i]) + "-i $(youtube-dl -f 140 "
-                                                     "-g " + lnk + ") "
-                                                                   "-acodec "
-                                                                   "copy "
-                                                                   "-vcodec "
-                                                                   "copy -to "
-                                                                   "" + str(
-            time_lst[i + 1]))
-    os.system("ffmpeg -ss " + str(time_lst[len(
-        time_lst - 1)]) + " -i $(youtube-dl -f 140 -g " + lnk + ") -acodec "
-                                                                "copy -vcodec"
-                                                                " copy")
+        if i == len(time_lst) - 1:
+            break
+        t = time_lst[i+1] - time_lst[i]
+        os.system("ffmpeg -ss " + str(time_lst[i]) +
+                  " -i $(youtube-dl -f 140 -g " + lnk + ") -t " + str(t)
+                  +
+                  " -c copy /Users/aramkazorian/Desktop/out" + str(i+1) + ".m4a")
+    os.system("ffmpeg -ss " + str(time_lst[len(time_lst) - 1])
+              +
+              " -i $(youtube-dl -f 140 -g " + lnk + ") -c copy /Users/aramkazorian/Desktop/out"
+              +
+              str(i+2) + ".m4a")
 
 
 # This function will calculate the amount of seconds, so that ffmpeg
