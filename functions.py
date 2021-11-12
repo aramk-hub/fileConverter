@@ -65,23 +65,32 @@ def download_with_range(lnk, range_str):
 # the system.
 
 def download_with_timestamps(lnk, time_lst):
+    
+    path = os.getcwd()
+    
     os.system("ffmpeg -ss 0 -i $(youtube-dl -f 140 -g " + lnk + ") -t " +
-              str(time_lst[0]) + " -c copy /Users/aramkazorian/Desktop/out.m4a")
-    for i in range(len(time_lst) - 1):
+              str(time_lst[0]) + " -c copy " + path + "/out.m4a")
+    
+    i = 0
+    for _ in range(len(time_lst) - 1):
         if i == len(time_lst) - 1:
             break
         t = time_lst[i+1] - time_lst[i]
+        
         os.system("ffmpeg -ss " + str(time_lst[i]) +
                   " -i $(youtube-dl -f 140 -g " + lnk + ") -t " + str(t)
                   +
-                  " -c copy /Users/aramkazorian/Desktop/out" + str(i+1) + ".m4a")
+                  " -c copy " + path + "/out" + str(i+1) + ".m4a")
+        
+        i += 1
+
     os.system("ffmpeg -ss " + str(time_lst[len(time_lst) - 1])
               +
               " -i $(youtube-dl -f 140 -g " + lnk
               +
-              ") -c copy /Users/aramkazorian/Desktop/out"
+              ") -c copy " + path + "/out"
               +
-              str(i+2) + ".m4a")
+              str(i+1) + ".m4a")
 
 
 # This function will calculate the amount of seconds, so that ffmpeg
